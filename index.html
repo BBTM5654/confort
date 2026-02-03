@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Escala Confort (°CF)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+      width: 300px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .temp {
+      font-size: 2.5em;
+      margin: 10px 0;
+    }
+    .cf {
+      font-size: 3em;
+      font-weight: bold;
+      color: #00e5ff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Escala Confort</h1>
+  <p id="location">Obteniendo ubicación...</p>
+  <div class="temp" id="celsius">-- °C</div>
+  <div class="cf" id="confort">-- °CF</div>
+  <p id="desc"></p>
+</div>
+
+<script>
+  const API_KEY = "TU_API_KEY_AQUI";
+
+  function calcularConfort(celsius) {
+    return Math.round(celsius - 23);
+  }
+
+  function obtenerClima(lat, lon) {
+    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&lang=es&appid=${API_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        const celsius = data.main.temp;
+        const cf = calcularConfort(celsius);
+
+        document.getElementById("location").textContent =
+          data.name + ", " + data.sys.country;
+
+        document.getElementById("celsius").textContent =
+          celsius.toFixed(1) + " °C";
+
+        document.getElementById("confort").textContent =
+          (cf >= 0 ? "+" : "") + cf + " °CF";
+
+        document.getElementById("desc").textContent =
+          data.weather[0].description;
+      })
+      .catch(err => {
+        document.getElementById("location").textContent =
+          "Error al obtener el clima";
+        console.error(err);
+      });
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        obtenerClima(pos.coords.latitude, pos.coords.longitude);
+      },
+      err => {
+        alert("No se pudo obtener la ubicación");
+      }
+    );
+  } else {
+    alert("Geolocalización no soportada");
+  }
+</script>
+
+</body>
+</html>
